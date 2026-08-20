@@ -18,6 +18,14 @@ cd comfyui-apple-silicon
 
 Then fetch whatever models you need — see [`models/MANIFEST.md`](models/MANIFEST.md).
 
+Optionally build [`ComfyUI.app`](comfyui_desktop/) — a native launcher so
+you can start/stop the server (and free its model memory) by opening and
+quitting a normal macOS app instead of managing the process by hand:
+
+```bash
+cd comfyui_desktop && ./build.sh
+```
+
 ## What's pinned
 
 | Component | Source | Pin |
