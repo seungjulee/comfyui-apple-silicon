@@ -88,12 +88,20 @@ latent_upscale_models/ltx-2.5-latent-spatial-upscaler-x2-bf16-1.0.safetensors   
 hf download Lightricks/LTX-2.5 \
   diffusion_models/ltx-2.5-22b-distilled-transformer-comfy-int8-convrot.safetensors \
   text_encoders/gemma4-12b-with-proj-ltx-2.5-comfy-int8-convrot.safetensors \
-  text_encoders/gemma4_e2b_it_int8_convrot.safetensors \
   vae/ltx-2.5-video-vae-bf16.safetensors \
   vae/ltx-2.5-audio-vae-bf16.safetensors \
   latent_upscale_models/ltx-2.5-latent-spatial-upscaler-x2-bf16-1.0.safetensors \
   --local-dir ComfyUI/models
 ```
+
+**Do not bother downloading `gemma4_e2b_it_int8_convrot.safetensors`** (the
+bundled template's prompt-rewriter text encoder) — it has no resolvable
+source: not in `Lightricks/LTX-2.5`, no `Comfy-Org/ltx-2.5` repo exists, not
+findable via HF search, and ComfyUI's own "Download" button for it silently
+no-ops without a Comfy.org login. It's skippable: the render script in
+`minimax-h3-apple-silicon/scripts/ltx25/ltx25.py` bypasses that whole node
+cluster and wires the prompt directly into `CLIPTextEncode` instead.
+**Confirmed working, M5 Max: 512x256/2s render in 90s, first attempt.**
 
 The official `video_ltx2_5_t2v` template is a **two-stage pipeline**: base-resolution
 generation (`LTXVDualCFGGuider` + `ManualSigmas`, separate video/audio latent
