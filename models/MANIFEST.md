@@ -78,18 +78,32 @@ int8 is the variant least likely to hit MPS dtype walls; needs
 ```
 diffusion_models/ltx-2.5-22b-distilled-transformer-comfy-int8-convrot.safetensors   21.5 GB
 text_encoders/gemma4-12b-with-proj-ltx-2.5-comfy-int8-convrot.safetensors           15.4 GB
+text_encoders/gemma4_e2b_it_int8_convrot.safetensors                                 4.8 GB  # prompt rewriter, NOT gated
 vae/ltx-2.5-video-vae-bf16.safetensors                                               1.5 GB
 vae/ltx-2.5-audio-vae-bf16.safetensors                                              0.37 GB
+latent_upscale_models/ltx-2.5-latent-spatial-upscaler-x2-bf16-1.0.safetensors        1.0 GB  # 2nd sampling stage
 ```
 
 ```bash
 hf download Lightricks/LTX-2.5 \
   diffusion_models/ltx-2.5-22b-distilled-transformer-comfy-int8-convrot.safetensors \
   text_encoders/gemma4-12b-with-proj-ltx-2.5-comfy-int8-convrot.safetensors \
+  text_encoders/gemma4_e2b_it_int8_convrot.safetensors \
   vae/ltx-2.5-video-vae-bf16.safetensors \
   vae/ltx-2.5-audio-vae-bf16.safetensors \
+  latent_upscale_models/ltx-2.5-latent-spatial-upscaler-x2-bf16-1.0.safetensors \
   --local-dir ComfyUI/models
 ```
+
+The official `video_ltx2_5_t2v` template is a **two-stage pipeline**: base-resolution
+generation (`LTXVDualCFGGuider` + `ManualSigmas`, separate video/audio latent
+branches via `LTXVConcatAVLatent`/`LTXVSeparateAVLatent`) → `LTXVLatentUpsampler`
+→ a second sampling pass at higher res → `VAEDecodeTiled`. The latent upscaler
+and the small `gemma4_e2b_it` prompt-rewriter (feeds `TextGenerateLTX2Prompt`)
+are both required by the bundled template even though they're easy to miss on
+a first read of the model-links note — ComfyUI's own "Missing Models" panel
+(Workflow Overview → Errors) is the reliable way to catch these instead of
+hand-reading the template JSON.
 
 **Requires ComfyUI core commit `bd34f338`** ("Fix float64 device in ltx
 diffusion decoder", merged 2026-08-12) or the VAE decoder crashes on MPS —
