@@ -58,6 +58,19 @@ rather than as the source of truth for what's actually pinned in this repo.
 
 `git submodule status` is the source of truth if this table goes stale.
 
+### Non-submodule pins (pip)
+
+| Package | Pinned by core (`requirements.txt`) | Actually installed |
+|---|---|---|
+| `comfyui-frontend-package` | `1.49.6` | `1.50.6` |
+| `comfyui-workflow-templates` | `0.11.44` | `0.11.44` |
+| `comfy-kitchen` | `0.2.31` | `0.2.31` |
+
+The frontend package is intentionally run ahead of core's own pin — core
+doesn't enforce the version at runtime (it just reports a mismatch in
+`/system_stats`), and there's no reason to sit on an older UI build.
+`pip install --upgrade comfyui-frontend-package` in the venv to match this.
+
 ## Why a fork for the Turbo node
 
 The Turbo LoRA produces NaN/black frames on MPS with a pruned base — root
@@ -96,3 +109,42 @@ cd ../..
 git add custom_nodes/ComfyUI-SolAttn-MPS
 git commit -m "Bump ComfyUI-SolAttn-MPS to <short-sha>"
 ```
+
+## Update log
+
+### 2026-08-20 — Full update pass, native launcher fixed, LTX-2.5 template fix saved
+
+- **Checked everything for updates**: ComfyUI core (`v0.33.3`, already latest
+  tag), all four pinned custom nodes (all already at their remotes' latest
+  commit on their pinned branch), `comfyui-workflow-templates` (`0.11.44`,
+  latest), `comfy-kitchen` (`0.2.31`, latest). Both our upstream PRs
+  ([H3-Turbo#26](https://github.com/Larryvrh/ComfyUI-MiniMax-H3-Turbo/pull/26),
+  [comfy-kitchen#107](https://github.com/Comfy-Org/comfy-kitchen/pull/107))
+  are still open/unmerged, so the fork and `ComfyUI-AppleSilicon-FP8` both
+  stay necessary.
+- **Bumped `comfyui-frontend-package`**: `1.49.6` → `1.50.6` (only actual
+  update available). Verified with a clean boot — all four custom nodes
+  loaded with no import errors, `/system_stats` and `/object_info` responded
+  correctly, and the graph editor rendered and loaded the LTX-2.5 workflow
+  correctly. No full render replay needed since this package only serves the
+  UI/JS layer, not the Python execution backend.
+- **`comfyui_desktop/` launcher was silently a no-op shell**: `/Applications/ComfyUI.app`
+  had a bash-script placeholder as its executable instead of the compiled
+  Swift binary (`main.swift` was never actually compiled into the bundle).
+  It could start the server but had no real GUI process, so quitting the app
+  (or `osascript quit`) didn't kill the server — confirmed by testing: the
+  server process survived a quit and kept the port open. Compiled
+  `main.swift` with `swiftc -O` and installed the real binary + ad-hoc
+  codesigned the bundle. Verified both directions: launch → server up in
+  ~6s in a real WKWebView window; quit → server process and port both
+  confirmed gone (models fully unloaded from memory).
+- **LTX-2.5 official template fixed and saved**: the bundled `Text to Video
+  (LTX-2.5)` node's `prompt_enhance` toggle points at the same unresolvable
+  `gemma4_e2b_it_int8_convrot.safetensors` file documented in the LTX-2.5
+  section above — confirmed again it's not even a selectable option in the
+  node's own dropdown (only files actually on disk are). Fix: toggle
+  `prompt_enhance` off, point `prompt_enhance_model` at the real 12B Gemma
+  encoder already used for `clip_name` (inert since the toggle is off, just
+  satisfies the required-selection validation). Saved as
+  [`workflows/video_ltx2_5_t2v.fixed.json`](workflows/video_ltx2_5_t2v.fixed.json) —
+  load this instead of the stock template to skip re-doing the fix.
