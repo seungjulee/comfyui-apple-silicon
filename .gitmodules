@@ -11,3 +11,6 @@
 [submodule "custom_nodes/ComfyUI-SolAttn-MPS"]
 	path = custom_nodes/ComfyUI-SolAttn-MPS
 	url = https://github.com/yshenaw/ComfyUI-SolAttn-MPS.git
+[submodule "custom_nodes/ComfyUI-Manager"]
+	path = custom_nodes/ComfyUI-Manager
+	url = https://github.com/Comfy-Org/ComfyUI-Manager.git

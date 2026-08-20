@@ -26,6 +26,35 @@ Then fetch whatever models you need — see [`models/MANIFEST.md`](models/MANIFE
 | `ComfyUI-MiniMax-H3-Turbo` | **fork**: `seungjulee/ComfyUI-MiniMax-H3-Turbo` | branch `apple-silicon-m5-verified` — MPS NaN fix applied on top of upstream |
 | `ComfyUI-AppleSilicon-FP8` | `pawel-mazurkiewicz/ComfyUI-AppleSilicon-FP8` | `911294c` (unmodified) |
 | `ComfyUI-SolAttn-MPS` | `yshenaw/ComfyUI-SolAttn-MPS` | `886f4b9` (unmodified) — opt-in attention accelerator, not wired into any workflow by default |
+| `ComfyUI-Manager` | `Comfy-Org/ComfyUI-Manager` | `f39cbd56` (V3.41, unmodified) — see below |
+
+### ComfyUI-Manager
+
+The standard tool for this. Adds a UI (gear icon in the top bar, or `Manager`
+in the node-graph right-click menu) for:
+
+- **Custom nodes**: browse/install/update/disable from a curated registry,
+  without hand-cloning + pinning like the rest of this repo does. Also flags
+  nodes with known security issues (it already runs a "security hold"
+  process — see its own commit history for examples).
+- **Models**: a curated `model-list.json` registry mapping friendly names to
+  their real download URLs and target folders — this is what confirmed the
+  LTX-2.5 prompt-rewriter file has no real source anywhere (see
+  `models/MANIFEST.md`): Manager's own registry doesn't list it either, only
+  the two 12B text encoder variants we already use.
+- **Snapshots**: save/restore the exact set of installed custom nodes + their
+  versions as a JSON file — a lighter-weight alternative to this repo's
+  submodule pinning, scoped to custom nodes only (doesn't cover ComfyUI core
+  or models).
+- **Missing-model resolution** from a loaded workflow, similar to ComfyUI
+  core's own "Missing Models" panel but backed by Manager's registry instead
+  of requiring a Comfy.org login.
+
+Not currently used for anything beyond being installed — the four other nodes
+here are managed manually via submodules, which is more precise for a pinned,
+reproducible environment. Reach for Manager's UI for one-off exploration
+(“what nodes exist for X”, “is there a known download URL for Y model”)
+rather than as the source of truth for what's actually pinned in this repo.
 
 `git submodule status` is the source of truth if this table goes stale.
 
