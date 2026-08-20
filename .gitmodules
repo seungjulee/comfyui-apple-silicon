@@ -1,0 +1,13 @@
+[submodule "ComfyUI"]
+	path = ComfyUI
+	url = https://github.com/comfyanonymous/ComfyUI.git
+	branch = v0.33.3
+[submodule "custom_nodes/ComfyUI-MiniMax-H3-Turbo"]
+	path = custom_nodes/ComfyUI-MiniMax-H3-Turbo
+	url = https://github.com/seungjulee/ComfyUI-MiniMax-H3-Turbo.git
+[submodule "custom_nodes/ComfyUI-AppleSilicon-FP8"]
+	path = custom_nodes/ComfyUI-AppleSilicon-FP8
+	url = https://github.com/pawel-mazurkiewicz/ComfyUI-AppleSilicon-FP8.git
+[submodule "custom_nodes/ComfyUI-SolAttn-MPS"]
+	path = custom_nodes/ComfyUI-SolAttn-MPS
+	url = https://github.com/yshenaw/ComfyUI-SolAttn-MPS.git

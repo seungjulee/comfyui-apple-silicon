@@ -1,0 +1,9 @@
+.DS_Store
+ComfyUI/venv/
+ComfyUI/models/
+ComfyUI/output/
+ComfyUI/input/
+ComfyUI/user/
+ComfyUI/temp/
+__pycache__/
+*.pyc
