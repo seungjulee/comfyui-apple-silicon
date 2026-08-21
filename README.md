@@ -26,6 +26,35 @@ quitting a normal macOS app instead of managing the process by hand:
 cd comfyui_desktop && ./build.sh
 ```
 
+## How the pieces fit together
+
+```
+bootstrap.sh          installs everything below from a bare clone
+  ├─ ComfyUI/                  (submodule, core)
+  ├─ custom_nodes/*/           (submodules, 4 nodes — see "What's pinned")
+  └─ pip installs, incl. the frontend-package pin — kept in sync
+     with the "Non-submodule pins" table below by hand; if you bump
+     one, bump the other
+
+models/MANIFEST.md    what to `hf download` for each of H3 / Music3 /
+                       LTX-2.5, and which submodule each depends on
+                       (e.g. INT8 checkpoints need ComfyUI-AppleSilicon-FP8
+                       loaded, or they fail in ~5s)
+
+workflows/             saved, pre-fixed workflow JSON — load these instead
+                       of a stock template to skip re-discovering a fix
+                       documented in models/MANIFEST.md or README.md
+
+comfyui_desktop/        optional native launcher (ComfyUI.app) — start/stop
+                       the server built above via a normal macOS app
+```
+
+Nothing here is auto-generated from anything else — if you change one
+(bump a pin, fix a workflow, add a model), check the others for a
+stale cross-reference before committing. `git submodule status` and
+`pip freeze` inside the venv are the only two sources of ground truth;
+every markdown file here is a claim about them, not a substitute for them.
+
 ## What's pinned
 
 | Component | Source | Pin |

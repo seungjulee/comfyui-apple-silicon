@@ -25,7 +25,11 @@ command -v brew >/dev/null 2>&1 || die "Homebrew required: https://brew.sh"
 
 step "Submodules"
 git submodule update --init --recursive
-ok "ComfyUI + 3 custom nodes checked out at pinned commits"
+ok "ComfyUI + 4 custom nodes checked out at pinned commits"
+
+# Pinned deliberately ahead of ComfyUI/requirements.txt's own frontend pin —
+# see README.md "Non-submodule pins (pip)". Keep these two in sync.
+FRONTEND_PACKAGE_VERSION="1.50.6"
 
 step "Prerequisites (python@3.12, ffmpeg)"
 for pkg in python@3.12 ffmpeg; do
@@ -44,7 +48,8 @@ python -c "import torch,sys; sys.exit(0 if torch.backends.mps.is_available() els
 pip install --quiet -r ComfyUI/requirements.txt
 pip install --quiet -r custom_nodes/ComfyUI-AppleSilicon-FP8/requirements.txt
 pip install --quiet huggingface_hub
-ok "environment ready"
+pip install --quiet "comfyui-frontend-package==${FRONTEND_PACKAGE_VERSION}"
+ok "environment ready (comfyui-frontend-package pinned to ${FRONTEND_PACKAGE_VERSION})"
 
 step "Models"
 echo "    Not fetched automatically -- see models/MANIFEST.md for exact files"

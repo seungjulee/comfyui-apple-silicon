@@ -78,11 +78,14 @@ int8 is the variant least likely to hit MPS dtype walls; needs
 ```
 diffusion_models/ltx-2.5-22b-distilled-transformer-comfy-int8-convrot.safetensors   21.5 GB
 text_encoders/gemma4-12b-with-proj-ltx-2.5-comfy-int8-convrot.safetensors           15.4 GB
-text_encoders/gemma4_e2b_it_int8_convrot.safetensors                                 4.8 GB  # prompt rewriter, NOT gated
 vae/ltx-2.5-video-vae-bf16.safetensors                                               1.5 GB
 vae/ltx-2.5-audio-vae-bf16.safetensors                                              0.37 GB
 latent_upscale_models/ltx-2.5-latent-spatial-upscaler-x2-bf16-1.0.safetensors        1.0 GB  # 2nd sampling stage
 ```
+
+Deliberately **not** listing `gemma4_e2b_it_int8_convrot.safetensors` (the
+bundled template's prompt-rewriter text encoder) here — see below, it has no
+resolvable source and isn't needed.
 
 ```bash
 hf download Lightricks/LTX-2.5 \
@@ -94,24 +97,35 @@ hf download Lightricks/LTX-2.5 \
   --local-dir ComfyUI/models
 ```
 
-**Do not bother downloading `gemma4_e2b_it_int8_convrot.safetensors`** (the
-bundled template's prompt-rewriter text encoder) — it has no resolvable
-source: not in `Lightricks/LTX-2.5`, no `Comfy-Org/ltx-2.5` repo exists, not
-findable via HF search, and ComfyUI's own "Download" button for it silently
-no-ops without a Comfy.org login. It's skippable: the render script in
-`minimax-h3-apple-silicon/scripts/ltx25/ltx25.py` bypasses that whole node
-cluster and wires the prompt directly into `CLIPTextEncode` instead.
-**Confirmed working, M5 Max: 512x256/2s render in 90s, first attempt.**
+**`gemma4_e2b_it_int8_convrot.safetensors` has no resolvable source anywhere**:
+not in `Lightricks/LTX-2.5`, no `Comfy-Org/ltx-2.5` repo exists, not findable
+via HF search, not in ComfyUI-Manager's own `model-list.json` registry, and
+ComfyUI's own "Download" button for it silently no-ops without a Comfy.org
+login. It's the model behind the bundled template's `prompt_enhance` toggle
+(auto-expands short prompts) — skippable, not load-bearing. Two working
+fixes, matching the two template generations currently in circulation:
 
-The official `video_ltx2_5_t2v` template is a **two-stage pipeline**: base-resolution
-generation (`LTXVDualCFGGuider` + `ManualSigmas`, separate video/audio latent
-branches via `LTXVConcatAVLatent`/`LTXVSeparateAVLatent`) → `LTXVLatentUpsampler`
-→ a second sampling pass at higher res → `VAEDecodeTiled`. The latent upscaler
-and the small `gemma4_e2b_it` prompt-rewriter (feeds `TextGenerateLTX2Prompt`)
-are both required by the bundled template even though they're easy to miss on
-a first read of the model-links note — ComfyUI's own "Missing Models" panel
-(Workflow Overview → Errors) is the reliable way to catch these instead of
-hand-reading the template JSON.
+- **Official template** (`workflow-templates` ≥ 0.11.44 ships this as a
+  single packed `Text to Video (LTX-2.5)` node): load
+  [`workflows/video_ltx2_5_t2v.fixed.json`](../workflows/video_ltx2_5_t2v.fixed.json)
+  instead of the stock template — `prompt_enhance` toggled off,
+  `prompt_enhance_model` pointed at the real 12B Gemma encoder (inert, just
+  satisfies the combo widget's required-selection validation). See
+  [`workflows/README.md`](../workflows/README.md) for how that fix was
+  found.
+- **Hand-built graph** (older, exploded-node template shape —
+  `LTXVDualCFGGuider` + `ManualSigmas` for the base pass,
+  `LTXVLatentUpsampler` + a second sampling pass for the upscale, separate
+  video/audio latents joined via `LTXVConcatAVLatent`/`LTXVSeparateAVLatent`):
+  `minimax-h3-apple-silicon/scripts/ltx25/ltx25.py` wires the prompt
+  directly into `CLIPTextEncode`, bypassing the rewriter node cluster
+  entirely. **Confirmed working, M5 Max: 512x256/2s render in 90s, first
+  attempt.**
+
+Either way, ComfyUI's "Missing Models" panel (Workflow Overview → Errors) is
+the reliable way to catch a template's actual model requirements — more
+reliable than hand-reading the template JSON, and what caught this in the
+first place.
 
 **Requires ComfyUI core commit `bd34f338`** ("Fix float64 device in ltx
 diffusion decoder", merged 2026-08-12) or the VAE decoder crashes on MPS —
